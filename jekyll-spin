@@ -1,0 +1,116 @@
+#!/bin/bash
+# This script:
+# - Creates a new directory for a Jekyll site in /var/www.
+# - Installs node & bower dependencies by running npm install.
+# Ubuntu: add this script to /usr/local/bin
+# Make it executable, then you can invoke it by typing "jekyll-spin" in the terminal.
+
+# ------------------------------------------------------------------------------
+# Set repo location
+GIT_REPO=git@bitbucket.org:RoryEgan/generic-new.git
+PROJECT='generic-new'
+NEW_PROJECT='Test'
+
+# ------------------------------------------------------------------------------
+# Set up directory name
+echo -e "Please enter the name of the new directory:"
+read -r dir
+
+# ------------------------------------------------------------------------------
+# Clone the repo
+cd /var/www/
+git clone $GIT_REPO
+mv $PROJECT $dir
+sudo chown -R $USER:$USER /var/www/$dir
+cd /var/www/$dir
+find . -type f -exec sed -i s/$PROJECT/$NEW_PROJECT/g {} +
+echo "The new directory has been created at /var/www/$dir"
+echo "It is owned by \"$USER\""
+
+#-------------------------------------------------------------------------------
+# Note: npm runs without sudo if node has been installed on your system by the nvm method:
+# https://github.com/creationix/nvm (recommended!)
+# Otherwise, the npm install command should run as sudo, followed by bower install.
+# For this case comment out line 151 & enable line 152)
+# Or move to the theme directory after installation is complete and run sudo npm install followed by bower install
+# npm install
+sudo npm install
+bower install
+
+# ------------------------------------------------------------------------------
+run_grunt () {
+cd /var/www/$dir
+grunt
+}
+
+setup_repo () {
+cd /var/www/$dir
+
+# remove existing git repo
+sudo rm -rf /var/www/$dir/.git
+git init
+
+repo_name=$1
+
+  dir_name=`basename "$(pwd)"`
+  invalid_credentials=0
+
+  if [ "$repo_name" = "" ]; then
+    echo "  Repo name (hit enter to use '$dir_name')?"
+    read repo_name
+  fi
+
+  if [ "$repo_name" = "" ]; then
+    repo_name=$dir_name
+  fi
+
+  username=`git config github.user`
+  if [ "$username" = "" ]; then
+    echo "  Could not find username, run 'git config --global github.user <username>'"
+    invalid_credentials=1
+  fi
+
+  token=`git config github.token`
+  if [ "$token" = "" ]; then
+    echo "  Could not find token, run 'git config --global github.token <token>'"
+    invalid_credentials=1
+  fi
+
+  if [ "$invalid_credentials" -eq "1" ]; then
+    return 1
+  fi
+
+  echo -n "  Creating Github repository '$repo_name' ..."
+  curl -u "$username:$token" https://api.github.com/user/repos -d '{"name":"'$repo_name'"}' > /dev/null 2>&1
+  echo " done."
+
+  echo -n "  Pushing local code to remote ..."
+  git remote add origin git@github.com:$username/$repo_name.git > /dev/null 2>&1
+  git push -u origin master > /dev/null 2>&1
+  git add -A
+  git commit -m "First Commit"
+  git push origin master
+  echo " done."
+
+}
+
+	read -p "Set up a new GitHub repo for $dir? [y/N]" yn
+	case $yn in
+	[Yy]* ) setup_repo;;
+	[Nn]* ) ;;
+	* ) echo "Please answer yes or no.";;
+	esac
+
+	read -p "Move to the theme directory and run the grunt default task? [y/N]" yn
+	case $yn in
+	[Yy]* ) run_grunt;;
+	[Nn]* ) exit ;;
+	* ) echo "Please answer yes or no.";;
+	esac
+
+sitelocation="Access your new site: http://localhost/"
+sitelocation+=$dir
+echo -e "------------------------------------------------"
+echo -e "Finished!"
+echo $sitelocation
+echo -e "------------------------------------------------"
