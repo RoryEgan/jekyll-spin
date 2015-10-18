@@ -26,6 +26,7 @@ mv $PROJECT $dir
 sudo chown -R $USER:$USER /var/www/$dir
 cd /var/www/$dir
 find . -type f -exec sed -i s/$PROJECT/$NEW_PROJECT/g {} +
+mv HINTGruntfile.js Gruntfile.js
 echo "The new directory has been created at /var/www/$dir"
 echo "It is owned by \"$USER\""
 
