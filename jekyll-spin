@@ -9,6 +9,8 @@
 # Set target repository
 echo -e "Please paste in the url of the repository you wish to clone:"
 read -r GIT_REPO
+basename=$(basename $GIT_REPO)
+PROJECT=${basename%.*}
 
 # ------------------------------------------------------------------------------
 # Set up new baseurl
@@ -25,15 +27,15 @@ read -r dir
 cd /var/www/html
 git clone $GIT_REPO
 
-cd "`ls -t | head -1`"
-PROJECT=$(pwd)
-cd ..
+#cd "`ls -t | head -1`"
+#PROJECT=$(pwd)
+#cd ..
 mv $PROJECT $dir
 
 #-------------------------------------------------------------------------------
 cd $dir
 
-find . -type f -exec sed -i s/$PROJECT/$NEW_PROJECT/g {} +
+find $(pwd) -type f -exec sed -i "s/$PROJECT/$NEW_PROJECT/g"  {} +
 
 mv HINTGruntfile.js Gruntfile.js
 
