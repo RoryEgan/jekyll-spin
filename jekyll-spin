@@ -6,11 +6,13 @@
 # Make it executable, then you can invoke it by typing "jekyll-spin" in the terminal.
 
 # ------------------------------------------------------------------------------
-# Set repo location
-GIT_REPO=git@bitbucket.org:RoryEgan/generic-new.git
-PROJECT='generic-new'
+# Set target repository
+echo -e "Please paste in the url of the repository you wish to clone:"
+read -r GIT_REPO
 
-echo -e "Please enter the name of the new project here(for baseurl etc.):"
+# ------------------------------------------------------------------------------
+# Set up new baseurl
+echo -e "Please enter the name of your new project here(for baseurl etc.):"
 read -r NEW_PROJECT
 
 # ------------------------------------------------------------------------------
@@ -20,14 +22,22 @@ read -r dir
 
 # ------------------------------------------------------------------------------
 # Clone the repo
-cd /var/www/
+cd /var/www/html
 git clone $GIT_REPO
+
+cd "`ls -t | head -1`"
+PROJECT=$(pwd)
+cd ..
 mv $PROJECT $dir
-sudo chown -R $USER:$USER /var/www/$dir
-cd /var/www/$dir
+
+#-------------------------------------------------------------------------------
+cd $dir
+
 find . -type f -exec sed -i s/$PROJECT/$NEW_PROJECT/g {} +
+
 mv HINTGruntfile.js Gruntfile.js
-echo "The new directory has been created at /var/www/$dir"
+
+echo "The new directory has been created at /var/www/html/$dir"
 echo "It is owned by \"$USER\""
 
 #-------------------------------------------------------------------------------
@@ -47,10 +57,10 @@ grunt
 }
 
 setup_repo () {
-cd /var/www/$dir
+cd /var/www/html/$dir
 
 # remove existing git repo
-sudo rm -rf /var/www/$dir/.git
+sudo rm -rf /var/www/html/$dir/.git
 git init
 
 repo_name=$1
