@@ -34,7 +34,6 @@ mv $PROJECT $dir
 # ------------------------------------------------------------------------------
 # Rename all iterances of the old name in the directory with the new name
 cd $dir
-mv HINTGruntfile.js Gruntfile.js
 find $(pwd) -type f -exec sed -i "s/\/$PROJECT/\/$NEW_PROJECT/g"  {} +
 
 # mv HINTGruntfile.js Gruntfile.js
